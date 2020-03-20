@@ -2,8 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-
 require("dotenv").config();
+
+const middleware = require("./middleware");
 
 const app = express();
 
@@ -17,20 +18,8 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use((req, res, next) => {
-  const error = new Error(`Error Not Found - ${req.originalUrl}`);
-  res.status(404);
-  next(error);
-});
-
-app.use((error, req, res, next) => {
-  const statusCode = req.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode);
-  res.json({
-    message: error.message,
-    stack: process.env.NODE_ENV === "production" ? "🛹" : error.stack
-  });
-});
+app.use(middleware.notFound);
+app.use(middleware.generalHandler);
 
 const port = process.env.PORT || 1998;
 app.listen(port, () => {
